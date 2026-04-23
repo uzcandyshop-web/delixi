@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>DELIXI — Сканер</title>
+  <title>DELIXI</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
   <style>
@@ -52,38 +52,125 @@
       background: var(--tg-theme-secondary-bg-color, #e5e5e7);
       color: var(--tg-theme-text-color, #000);
     }
-    .status { margin-top: 12px; padding: 12px; border-radius: 8px; font-size: 14px; }
+    .status { margin-top: 12px; padding: 12px; border-radius: 8px; font-size: 14px; white-space: pre-line; }
     .status.error { background: #fee; color: #c00; }
     .status.success { background: #efe; color: #070; }
     .hidden { display: none !important; }
   </style>
 </head>
 <body>
-  <h1>📸 DELIXI Сканер</h1>
+  <h1 id="title">📸 DELIXI</h1>
 
   <div id="scanView">
     <div id="reader"></div>
-    <div class="label" style="text-align:center;">Наведите камеру на QR-код клиента</div>
+    <div class="label" id="scanHint" style="text-align:center;"></div>
   </div>
 
   <div id="confirmView" class="hidden">
     <div class="card">
-      <div class="label">QR отсканирован</div>
+      <div class="label" id="qrLabel"></div>
       <div class="value" id="tokenPreview">—</div>
     </div>
     <div class="card">
-      <div class="label">Сумма покупки (сум)</div>
+      <div class="label" id="amountLabel"></div>
       <input id="amount" type="number" inputmode="numeric" min="1" step="1" placeholder="120000" autofocus>
     </div>
-    <button id="submitBtn">Подтвердить покупку</button>
-    <button id="rescanBtn" class="secondary">Отсканировать заново</button>
+    <button id="submitBtn"></button>
+    <button id="rescanBtn" class="secondary"></button>
     <div id="status"></div>
   </div>
 
   <script>
+    // ----------- i18n -----------
+    const I18N = {
+      ru: {
+        title: "📸 DELIXI Сканер",
+        scan_hint: "Наведите камеру на QR-код клиента",
+        qr_label: "QR отсканирован",
+        amount_label: "Сумма покупки (сум)",
+        submit: "Подтвердить покупку",
+        rescan: "Отсканировать заново",
+        enter_amount: "Введите корректную сумму",
+        no_token: "QR не отсканирован",
+        camera_error: "Не удалось получить доступ к камере: ",
+        net_error: "Ошибка сети: ",
+        accrued: (bonus, pct, balance) =>
+          `✅ Начислено ${bonus} бонусов (${pct}%)\nБаланс клиента: ${balance}`,
+        errors: {
+          region_mismatch: (c, s) => `Регион не совпадает (клиент: ${c}, вы: ${s})`,
+          invalid_qr: "QR-код недействителен",
+          customer_not_found: "Клиент не найден",
+          bad_amount: "Неверная сумма",
+          seller_inactive: "Ваш аккаунт продавца неактивен",
+          no_tiers_configured: "Бонусные тиры не настроены",
+          no_matching_tier: "Нет тарифа для этой суммы",
+        },
+        unknown_error: (code) => `Ошибка: ${code}`,
+      },
+      uz: {
+        title: "📸 DELIXI Skaner",
+        scan_hint: "Kamerani mijozning QR-kodiga qarating",
+        qr_label: "QR skanerlandi",
+        amount_label: "Xarid summasi (so'm)",
+        submit: "Xaridni tasdiqlash",
+        rescan: "Qayta skanerlash",
+        enter_amount: "To'g'ri summa kiriting",
+        no_token: "QR skanerlanmagan",
+        camera_error: "Kameraga ruxsat olib bo'lmadi: ",
+        net_error: "Tarmoq xatosi: ",
+        accrued: (bonus, pct, balance) =>
+          `✅ ${bonus} bonus hisoblandi (${pct}%)\nMijoz balansi: ${balance}`,
+        errors: {
+          region_mismatch: (c, s) => `Viloyat mos kelmaydi (mijoz: ${c}, siz: ${s})`,
+          invalid_qr: "QR-kod noto'g'ri",
+          customer_not_found: "Mijoz topilmadi",
+          bad_amount: "Noto'g'ri summa",
+          seller_inactive: "Sotuvchi hisobingiz faol emas",
+          no_tiers_configured: "Bonus darajalari sozlanmagan",
+          no_matching_tier: "Bu summa uchun tarif yo'q",
+        },
+        unknown_error: (code) => `Xato: ${code}`,
+      },
+    };
+
+    // Determine language: URL param `?lang=uz` wins, fallback to Telegram user's language_code
+    const params = new URLSearchParams(window.location.search);
+    let lang = (params.get("lang") || "").toLowerCase();
+    if (lang !== "ru" && lang !== "uz") {
+      const tgLang = (window.Telegram?.WebApp?.initDataUnsafe?.user?.language_code || "").toLowerCase();
+      lang = tgLang === "uz" ? "uz" : "ru";
+    }
+    const L = I18N[lang];
+
+    // Apply static translations
+    document.getElementById("title").textContent = L.title;
+    document.getElementById("scanHint").textContent = L.scan_hint;
+    document.getElementById("qrLabel").textContent = L.qr_label;
+    document.getElementById("amountLabel").textContent = L.amount_label;
+    document.getElementById("submitBtn").textContent = L.submit;
+    document.getElementById("rescanBtn").textContent = L.rescan;
+    document.documentElement.lang = lang;
+
+    // ----------- Scanner logic -----------
     const tg = window.Telegram.WebApp;
     tg.ready();
     tg.expand();
+
+    // Diagnose initData early
+    const initDataOk = tg.initData && tg.initData.length > 10;
+    if (!initDataOk) {
+      // Show diagnostic banner right away
+      setTimeout(() => {
+        showStatus(
+          "⚠️ initData пустая — Telegram не подписал эту сессию.\n" +
+          "platform=" + (tg.platform || "?") +
+          ", version=" + (tg.version || "?") +
+          ", user=" + (tg.initDataUnsafe?.user?.id || "none") + "\n\n" +
+          "Открой WebApp через кнопку 📸 в клавиатуре бота (не через Menu Button).",
+          "error"
+        );
+      }, 500);
+    }
 
     const scanView = document.getElementById('scanView');
     const confirmView = document.getElementById('confirmView');
@@ -115,10 +202,10 @@
           { facingMode: "environment" },
           { fps: 10, qrbox: { width: 250, height: 250 } },
           onScanSuccess,
-          () => {}  // ignore per-frame decode failures
+          () => {}
         );
       } catch (e) {
-        showStatus("Не удалось получить доступ к камере: " + e, "error");
+        showStatus(L.camera_error + e, "error");
       }
     }
 
@@ -143,13 +230,31 @@
     submitBtn.onclick = async () => {
       const amount = parseFloat(amountInput.value);
       if (!amount || amount <= 0) {
-        showStatus("Введите корректную сумму", "error");
+        showStatus(L.enter_amount, "error");
         return;
       }
       if (!qrToken) {
-        showStatus("QR не отсканирован", "error");
+        showStatus(L.no_token, "error");
         return;
       }
+
+      // Diagnostic: confirm Telegram signed this WebApp session
+      if (!tg.initData || tg.initData.length < 10) {
+        showStatus(
+          "⚠️ Telegram initData пустая.\n" +
+          "Диагностика:\n" +
+          "• platform: " + (tg.platform || "unknown") + "\n" +
+          "• version: " + (tg.version || "unknown") + "\n" +
+          "• initData length: " + (tg.initData || "").length + "\n" +
+          "• user: " + (tg.initDataUnsafe?.user?.id || "none") + "\n\n" +
+          "Откройте WebApp ТОЛЬКО через кнопку 📸 в клавиатуре бота после /seller. " +
+          "Menu Button от BotFather не подписывает initData.",
+          "error"
+        );
+        submitBtn.disabled = false;
+        return;
+      }
+
       submitBtn.disabled = true;
       clearStatus();
 
@@ -170,31 +275,30 @@
 
         if (!res.ok) {
           const code = data.detail?.error || data.detail || 'unknown_error';
-          const messages = {
-            region_mismatch: `Регион не совпадает (клиент: ${data.detail?.customer_region}, вы: ${data.detail?.seller_region})`,
-            invalid_qr: "QR-код недействителен",
-            customer_not_found: "Клиент не найден",
-            bad_amount: "Неверная сумма",
-            seller_inactive: "Ваш аккаунт продавца неактивен",
-            no_tiers_configured: "Бонусные тиры не настроены",
-            no_matching_tier: "Нет тарифа для этой суммы",
-          };
-          showStatus(messages[code] || `Ошибка: ${code}`, "error");
+          let msg;
+          if (code === 'region_mismatch') {
+            msg = L.errors.region_mismatch(
+              data.detail?.customer_region, data.detail?.seller_region);
+          } else if (L.errors[code]) {
+            msg = L.errors[code];
+          } else {
+            msg = L.unknown_error(code);
+          }
+          showStatus(msg, "error");
           tg.HapticFeedback?.notificationOccurred('error');
           return;
         }
 
-        const fmt = n => new Intl.NumberFormat('ru-RU').format(n);
+        const fmt = n => new Intl.NumberFormat(lang === 'uz' ? 'uz-UZ' : 'ru-RU').format(n);
         showStatus(
-          `✅ Начислено ${fmt(data.bonus_amount)} бонусов (${data.bonus_percent}%)\n` +
-          `Баланс клиента: ${fmt(data.balance_after)}`,
+          L.accrued(fmt(data.bonus_amount), data.bonus_percent, fmt(data.balance_after)),
           "success"
         );
         tg.HapticFeedback?.notificationOccurred('success');
         amountInput.value = '';
         setTimeout(() => startScanner(), 2000);
       } catch (e) {
-        showStatus("Ошибка сети: " + e.message, "error");
+        showStatus(L.net_error + e.message, "error");
       } finally {
         submitBtn.disabled = false;
       }
@@ -202,7 +306,6 @@
 
     rescanBtn.onclick = startScanner;
 
-    // Go!
     startScanner();
   </script>
 </body>
