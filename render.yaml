@@ -1,0 +1,53 @@
+services:
+  # FastAPI API + WebApp static files
+  - type: web
+    name: delixi-api
+    runtime: python
+    plan: starter
+    region: frankfurt
+    branch: main
+    buildCommand: "pip install -r requirements.txt && alembic upgrade head"
+    startCommand: "uvicorn app.main:app --host 0.0.0.0 --port $PORT"
+    healthCheckPath: /health
+    envVars:
+      - key: BOT_TOKEN
+        sync: false
+      - key: QR_SECRET
+        sync: false
+      - key: ADMIN_TG_IDS
+        sync: false
+      - key: WEBAPP_URL
+        sync: false
+      - key: DATABASE_URL
+        fromDatabase:
+          name: delixi-db
+          property: connectionString
+
+  # Telegram bot long-polling worker
+  - type: worker
+    name: delixi-bot
+    runtime: python
+    plan: starter
+    region: frankfurt
+    branch: main
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "python -m app.bot.main"
+    envVars:
+      - key: BOT_TOKEN
+        sync: false
+      - key: QR_SECRET
+        sync: false
+      - key: ADMIN_TG_IDS
+        sync: false
+      - key: WEBAPP_URL
+        sync: false
+      - key: DATABASE_URL
+        fromDatabase:
+          name: delixi-db
+          property: connectionString
+
+databases:
+  - name: delixi-db
+    plan: starter
+    region: frankfurt
+    postgresMajorVersion: 15
