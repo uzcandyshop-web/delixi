@@ -48,6 +48,7 @@ services:
 
 databases:
   - name: delixi-db
-    plan: starter
+    plan: basic-256mb
     region: frankfurt
-    postgresMajorVersion: 15
+    postgresMajorVersion: "15"
+    ipAllowList: []
