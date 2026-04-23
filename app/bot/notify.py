@@ -1,13 +1,11 @@
-"""Outbound notifications from API to Telegram users.
-
-Keeps a single shared Bot instance for fire-and-forget use from API handlers.
-"""
+"""Outbound notifications from API to Telegram users, localized."""
 import logging
 from decimal import Decimal
 from aiogram import Bot
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 from app.config import get_settings
+from app.core.i18n import t, DEFAULT_LANG
 
 log = logging.getLogger("delixi.notify")
 _bot: Bot | None = None
@@ -24,20 +22,20 @@ def _get_bot() -> Bot:
 
 
 def _fmt(n: Decimal) -> str:
-    """Format a number with thousand-separators using spaces."""
     q = n.quantize(Decimal("1")) if n == n.to_integral_value() else n
-    s = f"{q:,}".replace(",", " ")
-    return s
+    return f"{q:,}".replace(",", " ")
 
 
 async def notify_purchase(
-    telegram_id: int, amount: Decimal, bonus: Decimal, balance: Decimal
+    telegram_id: int,
+    amount: Decimal,
+    bonus: Decimal,
+    balance: Decimal,
+    lang: str = DEFAULT_LANG,
 ) -> None:
-    text = (
-        "✅ <b>Покупка подтверждена</b>\n\n"
-        f"Сумма: <b>{_fmt(amount)}</b> сум\n"
-        f"Начислено бонусов: <b>+{_fmt(bonus)}</b>\n"
-        f"Баланс: <b>{_fmt(balance)}</b>"
+    text = t(
+        "notify_purchase", lang,
+        amount=_fmt(amount), bonus=_fmt(bonus), balance=_fmt(balance),
     )
     try:
         await _get_bot().send_message(telegram_id, text)
@@ -45,27 +43,29 @@ async def notify_purchase(
         log.warning("notify_purchase failed for %s: %s", telegram_id, e)
 
 
-async def notify_redemption_approved(telegram_id: int, prize_name: str) -> None:
+async def notify_redemption_approved(
+    telegram_id: int, prize_name: str, lang: str = DEFAULT_LANG,
+) -> None:
     try:
         await _get_bot().send_message(
             telegram_id,
-            f"🎁 <b>Заявка на приз одобрена!</b>\n\n"
-            f"Приз: <b>{prize_name}</b>\n"
-            f"Вы можете забрать его в магазине.",
+            t("notify_redemption_approved", lang, prize=prize_name),
         )
     except Exception as e:
         log.warning("notify_redemption failed for %s: %s", telegram_id, e)
 
 
 async def notify_redemption_rejected(
-    telegram_id: int, prize_name: str, note: str | None
+    telegram_id: int,
+    prize_name: str,
+    note: str | None,
+    lang: str = DEFAULT_LANG,
 ) -> None:
-    extra = f"\n\nПричина: {note}" if note else ""
+    extra = t("rejection_reason", lang, note=note) if note else ""
     try:
         await _get_bot().send_message(
             telegram_id,
-            f"❌ <b>Заявка на «{prize_name}» отклонена.</b>"
-            f"{extra}\n\nБонусы остались на вашем балансе.",
+            t("notify_redemption_rejected", lang, prize=prize_name, extra=extra),
         )
     except Exception as e:
         log.warning("notify_redemption_reject failed for %s: %s", telegram_id, e)

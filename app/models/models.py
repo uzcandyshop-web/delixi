@@ -60,6 +60,7 @@ class User(Base):
     full_name: Mapped[str | None] = mapped_column(String(200))
     region_id: Mapped[int] = mapped_column(ForeignKey("regions.id"), nullable=False)
     role: Mapped[str] = mapped_column(String(16), nullable=False, default=UserRole.CUSTOMER.value)
+    language: Mapped[str] = mapped_column(String(8), nullable=False, default="ru")
     qr_token: Mapped[str] = mapped_column(String(128), unique=True, nullable=False)
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
     created_at: Mapped[datetime] = mapped_column(
@@ -71,6 +72,7 @@ class User(Base):
 
     __table_args__ = (
         CheckConstraint("role IN ('customer','seller','admin')", name="chk_user_role"),
+        CheckConstraint("language IN ('ru','uz')", name="chk_user_language"),
         Index("idx_users_region", "region_id"),
         Index("idx_users_role", "role"),
     )

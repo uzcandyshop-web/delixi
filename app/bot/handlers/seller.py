@@ -1,4 +1,4 @@
-"""Seller handlers: WebApp scanner launch + today's report."""
+"""Seller handlers: WebApp scanner launch + today's report, localized."""
 from datetime import datetime, timezone, timedelta
 from decimal import Decimal
 from aiogram import Router, F
@@ -8,6 +8,7 @@ from aiogram.types import (
 )
 from sqlalchemy import func
 from app.config import get_settings
+from app.core.i18n import t, SUPPORTED_LANGS, DEFAULT_LANG
 from app.db import SessionLocal
 from app.models import User, Transaction, UserRole
 
@@ -15,14 +16,20 @@ router = Router()
 settings = get_settings()
 
 
-def _seller_kb() -> ReplyKeyboardMarkup:
+def _in_any(key: str):
+    texts = {t(key, lang) for lang in SUPPORTED_LANGS}
+    return F.text.in_(texts)
+
+
+def _seller_kb(lang: str) -> ReplyKeyboardMarkup:
     return ReplyKeyboardMarkup(
         keyboard=[
             [KeyboardButton(
-                text="📸 Сканировать QR",
+                text=t("menu_scan", lang),
                 web_app=WebAppInfo(url=settings.webapp_url),
             )],
-            [KeyboardButton(text="📊 Сегодня")],
+            [KeyboardButton(text=t("menu_today", lang))],
+            [KeyboardButton(text=t("menu_language", lang))],
         ],
         resize_keyboard=True,
     )
@@ -37,32 +44,30 @@ def _fmt(n: Decimal) -> str:
 async def seller_menu(m: Message):
     with SessionLocal() as db:
         user = db.query(User).filter(User.telegram_id == m.from_user.id).first()
+    lang = user.language if user else DEFAULT_LANG
     if not user or user.role != UserRole.SELLER.value:
-        await m.answer("У вас нет роли продавца. Обратитесь к администратору.")
+        await m.answer(t("not_seller", lang))
         return
-    await m.answer(
-        "📸 Меню продавца. Нажмите «Сканировать QR» чтобы открыть камеру.",
-        reply_markup=_seller_kb(),
-    )
+    await m.answer(t("seller_menu_intro", lang), reply_markup=_seller_kb(lang))
 
 
-@router.message(F.text == "📱 Открыть меню")
+@router.message(_in_any("menu_open"))
 async def seller_open(m: Message):
     with SessionLocal() as db:
         user = db.query(User).filter(User.telegram_id == m.from_user.id).first()
     if user and user.role == UserRole.SELLER.value:
-        await m.answer("Меню продавца:", reply_markup=_seller_kb())
+        await m.answer(t("seller_menu_reopen", user.language), reply_markup=_seller_kb(user.language))
 
 
-@router.message(F.text == "📊 Сегодня")
+@router.message(_in_any("menu_today"))
 async def today_report(m: Message):
     with SessionLocal() as db:
         user = db.query(User).filter(User.telegram_id == m.from_user.id).first()
         if not user or user.role != UserRole.SELLER.value:
-            await m.answer("Только для продавцов.")
+            await m.answer(t("only_sellers", DEFAULT_LANG))
             return
+        lang = user.language
 
-        # "Today" = last 24 hours (simple; timezone-safe)
         since = datetime.now(timezone.utc) - timedelta(hours=24)
         agg = (
             db.query(
@@ -79,11 +84,11 @@ async def today_report(m: Message):
         count, total, bonus = agg
 
     if count == 0:
-        await m.answer("За последние 24 часа транзакций не было.")
+        await m.answer(t("today_empty", lang))
         return
-    await m.answer(
-        f"📊 <b>За последние 24 часа:</b>\n\n"
-        f"Транзакций: <b>{count}</b>\n"
-        f"Оборот: <b>{_fmt(Decimal(total))}</b> сум\n"
-        f"Начислено бонусов: <b>{_fmt(Decimal(bonus))}</b>"
-    )
+    await m.answer(t(
+        "today_report", lang,
+        count=count,
+        total=_fmt(Decimal(total)),
+        bonus=_fmt(Decimal(bonus)),
+    ))
