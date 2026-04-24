@@ -1,9 +1,10 @@
-"""Transaction creation: QR decode, region check, tier calc, ledger write."""
+"""Transaction creation: QR decode, region check, points calc, ledger write."""
 from decimal import Decimal
 from sqlalchemy.orm import Session
 from app.core.qr import qr_decode
-from app.models import User, BonusTier, Transaction, BonusLedger, LedgerReason, UserRole
-from app.services.bonus import calculate_bonus, get_balance
+from app.models import User, Transaction, BonusLedger, LedgerReason, UserRole
+from app.services.bonus import calculate_points, get_balance
+from app.services.exchange_rate import get_current_rate
 
 
 class TxError(Exception):
@@ -59,14 +60,12 @@ def create_transaction(
     if amount <= 0:
         raise TxError("bad_amount")
 
-    # 6. Tier lookup
-    tiers = db.query(BonusTier).order_by(BonusTier.min_amount).all()
-    if not tiers:
-        raise TxError("no_tiers_configured")
+    # 6. Points calculation: floor(amount / usd_rate)
+    usd_rate = get_current_rate(db)
     try:
-        percent, bonus = calculate_bonus(amount, tiers)
-    except ValueError:
-        raise TxError("no_matching_tier", amount=str(amount))
+        points = calculate_points(amount, usd_rate)
+    except ValueError as e:
+        raise TxError("points_calc_failed", detail=str(e))
 
     # 7. Write in one DB transaction
     tx = Transaction(
@@ -74,8 +73,9 @@ def create_transaction(
         seller_id=seller.id,
         region_id=seller.region_id,
         amount=amount,
-        bonus_percent=percent,
-        bonus_amount=bonus,
+        bonus_percent=Decimal("0"),   # legacy column, no longer meaningful
+        bonus_amount=points,
+        usd_rate=usd_rate,
         idempotency_key=idempotency_key,
     )
     db.add(tx)
@@ -84,7 +84,7 @@ def create_transaction(
     db.add(
         BonusLedger(
             user_id=customer.id,
-            delta=bonus,
+            delta=points,
             reason=LedgerReason.PURCHASE.value,
             tx_id=tx.id,
         )

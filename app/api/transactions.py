@@ -31,8 +31,7 @@ async def create_tx(
             "customer_not_found": 404,
             "region_mismatch": 403,
             "bad_amount": 400,
-            "no_tiers_configured": 500,
-            "no_matching_tier": 400,
+            "points_calc_failed": 500,
         }
         raise HTTPException(status_map.get(e.code, 400), detail={"error": e.code, **e.extra})
 
@@ -45,6 +44,8 @@ async def create_tx(
             amount=tx.amount,
             bonus=tx.bonus_amount,
             balance=balance,
+            lang=tx.customer.language,
+            usd_rate=tx.usd_rate,
         )
     )
 

@@ -1,11 +1,11 @@
 """SQLAlchemy ORM models for DELIXI."""
 import uuid
-from datetime import datetime
+from datetime import datetime, date
 from decimal import Decimal
 from enum import Enum
 from sqlalchemy import (
     String, Integer, Boolean, Numeric, ForeignKey, BigInteger,
-    DateTime, CheckConstraint, Index, text,
+    DateTime, Date, CheckConstraint, Index, text,
 )
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -111,6 +111,9 @@ class Transaction(Base):
     amount: Mapped[Decimal] = mapped_column(Numeric(12, 2), nullable=False)
     bonus_percent: Mapped[Decimal] = mapped_column(Numeric(5, 2), nullable=False)
     bonus_amount: Mapped[Decimal] = mapped_column(Numeric(12, 2), nullable=False)
+    # USD rate used for this transaction (points = floor(amount / usd_rate)).
+    # Nullable for backwards-compat with transactions made before this column existed.
+    usd_rate: Mapped[Decimal | None] = mapped_column(Numeric(14, 4), nullable=True)
     idempotency_key: Mapped[str] = mapped_column(String(64), unique=True, nullable=False)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, server_default=text("NOW()")
@@ -207,5 +210,26 @@ class Redemption(Base):
     __table_args__ = (
         CheckConstraint(
             "status IN ('pending','approved','rejected','issued')", name="chk_redemption_status"
+        ),
+    )
+
+
+# ---------- Exchange rates (USD/UZS, updated daily from cbu.uz) ----------
+class ExchangeRate(Base):
+    __tablename__ = "exchange_rates"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    currency: Mapped[str] = mapped_column(String(8), nullable=False, default="USD")
+    rate: Mapped[Decimal] = mapped_column(Numeric(14, 4), nullable=False)
+    source: Mapped[str] = mapped_column(String(32), nullable=False, default="cbu.uz")
+    fetched_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=text("CURRENT_TIMESTAMP")
+    )
+    effective_date: Mapped[date] = mapped_column(Date, nullable=False)
+
+    __table_args__ = (
+        Index(
+            "idx_exchange_rates_currency_date",
+            "currency", "effective_date", unique=True,
         ),
     )

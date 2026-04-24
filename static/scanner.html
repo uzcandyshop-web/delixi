@@ -157,26 +157,6 @@
     tg.ready();
     tg.expand();
 
-    // Diagnose initData early
-    const initDataOk = tg.initData && tg.initData.length > 10;
-    if (!initDataOk) {
-      setTimeout(() => {
-        const info = [
-          "⚠️ initData пустая",
-          "platform=" + tg.platform,
-          "version=" + tg.version,
-          "initData.length=" + (tg.initData || "").length,
-          "user=" + (tg.initDataUnsafe?.user?.id || "none"),
-          "query_id=" + (tg.initDataUnsafe?.query_id || "none"),
-          "auth_date=" + (tg.initDataUnsafe?.auth_date || "none"),
-          "hash=" + (tg.initDataUnsafe?.hash ? "present" : "none"),
-          "start_param=" + (tg.initDataUnsafe?.start_param || "none"),
-          "location=" + location.href,
-        ].join("\n");
-        showStatus(info, "error");
-      }, 500);
-    }
-
     const scanView = document.getElementById('scanView');
     const confirmView = document.getElementById('confirmView');
     const tokenPreview = document.getElementById('tokenPreview');

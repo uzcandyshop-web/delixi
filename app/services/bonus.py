@@ -1,15 +1,36 @@
-"""Bonus calculation: flat-tier lookup by purchase amount."""
-from decimal import Decimal, ROUND_HALF_UP
+"""Points calculation: floor(amount / usd_rate).
+
+The legacy tier-based bonus is kept (deprecated) for reading historic
+transactions, but new purchases always use USD-rate formula.
+"""
+from decimal import Decimal, ROUND_FLOOR, ROUND_HALF_UP
 from app.models import BonusTier
 
 
+def calculate_points(amount: Decimal, usd_rate: Decimal) -> Decimal:
+    """Return integer points = floor(amount / usd_rate).
+
+    Returns Decimal for consistency with other money columns, but the
+    value is always an integer (no fractional points by design).
+    """
+    if usd_rate is None or usd_rate <= 0:
+        raise ValueError(f"invalid_usd_rate:{usd_rate}")
+    if amount is None or amount < 0:
+        raise ValueError(f"invalid_amount:{amount}")
+    # amount in UZS / usd_rate (UZS per 1 USD) = USD equivalent
+    # floor to integer points
+    points = (Decimal(amount) / Decimal(usd_rate)).quantize(
+        Decimal("1"), rounding=ROUND_FLOOR
+    )
+    return points
+
+
+# ---------- Legacy (kept for historic-record reads) ----------
 def calculate_bonus(
     amount: Decimal, tiers: list[BonusTier]
 ) -> tuple[Decimal, Decimal]:
-    """Return (percent, bonus_amount) for a given purchase amount.
-
-    Tiers are applied flat (not cumulative): entire amount gets the % of the
-    matching tier. Tiers should be ordered by min_amount ascending.
+    """DEPRECATED: tier-based calculation. Kept for completeness; new
+    transactions must use calculate_points(amount, usd_rate) instead.
     """
     for tier in tiers:
         if amount < tier.min_amount:

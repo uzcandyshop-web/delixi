@@ -13,6 +13,9 @@ from app.models import User, Redemption, UserRole, Region
 from app.services.redemptions import (
     approve_redemption, reject_redemption, RedemptionError,
 )
+from app.services.exchange_rate import (
+    get_current_rate, update_daily_rate,
+)
 from app.bot.notify import (
     notify_redemption_approved, notify_redemption_rejected,
 )
@@ -175,3 +178,28 @@ async def make_seller(m: Message):
         name = user.full_name or str(tg_id)
 
     await m.answer(t("made_seller", lang, name=name, code=region_code))
+
+
+@router.message(Command("rate"))
+async def cmd_rate(m: Message):
+    """Show the current USD rate (any registered user can check)."""
+    with SessionLocal() as db:
+        user = db.query(User).filter(User.telegram_id == m.from_user.id).first()
+        lang = user.language if user else DEFAULT_LANG
+        rate = get_current_rate(db)
+    await m.answer(t("rate_current", lang, rate=_fmt(rate)))
+
+
+@router.message(Command("update_rate"))
+async def cmd_update_rate(m: Message):
+    """Force-refresh the USD rate from cbu.uz (admin only)."""
+    if not _is_admin(m.from_user.id):
+        return
+    lang = _admin_lang(m.from_user.id)
+    await m.answer(t("rate_updating", lang))
+    with SessionLocal() as db:
+        new_rate = update_daily_rate(db)
+    if new_rate is None:
+        await m.answer(t("rate_update_failed", lang))
+    else:
+        await m.answer(t("rate_updated", lang, rate=_fmt(new_rate)))

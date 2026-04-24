@@ -27,10 +27,10 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     },
     "start_welcome": {
         "ru": "👋 Добро пожаловать в <b>DELIXI</b>!\n\n"
-              "Это бонусная программа для постоянных клиентов. "
+              "Это программа лояльности для постоянных клиентов. "
               "Поделитесь номером телефона, чтобы зарегистрироваться:",
         "uz": "👋 <b>DELIXI</b>ga xush kelibsiz!\n\n"
-              "Bu doimiy mijozlar uchun bonus dastur. "
+              "Bu doimiy mijozlar uchun sodiqlik dasturi. "
               "Ro'yxatdan o'tish uchun telefon raqamingizni yuboring:",
     },
     "send_phone_btn": {
@@ -90,10 +90,10 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     "qr_ready_customer": {
         "ru": "Готово, <b>{name}</b>! 🎉\n\n"
               "Показывайте этот QR-код продавцу при покупке — "
-              "бонусы начислятся автоматически.",
+              "баллы начислятся автоматически.",
         "uz": "Tayyor, <b>{name}</b>! 🎉\n\n"
               "Xarid qilganingizda ushbu QR-kodni sotuvchiga ko'rsating — "
-              "bonuslar avtomatik hisoblanadi.",
+              "ballar avtomatik hisoblanadi.",
     },
     "welcome_staff": {
         "ru": "Добро пожаловать, <b>{name}</b>! Роль: <b>{role}</b>.",
@@ -122,8 +122,8 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "uz": "Sizning shaxsiy QR-kodingiz",
     },
     "balance_label": {
-        "ru": "💰 <b>Баланс:</b> {amount} бонусов",
-        "uz": "💰 <b>Balans:</b> {amount} bonus",
+        "ru": "💰 <b>Баланс:</b> {amount} баллов",
+        "uz": "💰 <b>Balans:</b> {amount} ball",
     },
     "history_empty": {
         "ru": "История покупок пуста.",
@@ -138,8 +138,8 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "uz": "so'm",
     },
     "history_item_suffix_bonus": {
-        "ru": "бонусов",
-        "uz": "bonus",
+        "ru": "баллов",
+        "uz": "ball",
     },
 
     # ---------- Prizes ----------
@@ -152,8 +152,8 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "uz": "Sovg'alar katalogi hozircha bo'sh.",
     },
     "prize_cost": {
-        "ru": "Стоимость: <b>{cost}</b> бонусов",
-        "uz": "Narxi: <b>{cost}</b> bonus",
+        "ru": "Стоимость: <b>{cost}</b> баллов",
+        "uz": "Narxi: <b>{cost}</b> ball",
     },
     "prize_stock": {
         "ru": "В наличии: {stock} шт.",
@@ -161,7 +161,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     },
     "prize_order_btn": {
         "ru": "Заказать за {cost}",
-        "uz": "Buyurtma ({cost} bonus)",
+        "uz": "Buyurtma ({cost} ball)",
     },
     "only_customers_redeem": {
         "ru": "Только клиенты могут заказывать призы",
@@ -176,28 +176,28 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "uz": "Sovg'a tugagan",
     },
     "insufficient_balance": {
-        "ru": "Недостаточно бонусов (нужно {required}, у вас {balance})",
-        "uz": "Bonus yetarli emas (kerak: {required}, sizda: {balance})",
+        "ru": "Недостаточно баллов (нужно {required}, у вас {balance})",
+        "uz": "Ball yetarli emas (kerak: {required}, sizda: {balance})",
     },
     "redemption_submitted": {
         "ru": "✅ Заявка на <b>{prize}</b> оформлена!\n\n"
               "Админ рассмотрит её в ближайшее время. "
-              "Бонусы спишутся только после подтверждения.",
+              "Баллы спишутся только после подтверждения.",
         "uz": "✅ <b>{prize}</b> uchun ariza yuborildi!\n\n"
               "Administrator yaqin vaqtda ko'rib chiqadi. "
-              "Bonus faqat tasdiqlangandan keyin yechiladi.",
+              "Ballar faqat tasdiqlangandan keyin yechiladi.",
     },
 
     # ---------- Help ----------
     "help_text": {
         "ru": "<b>Как это работает:</b>\n\n"
               "1. Показывайте QR-код продавцу при каждой покупке\n"
-              "2. Получайте бонусы автоматически (процент зависит от суммы)\n"
+              "2. Получайте баллы автоматически (1 балл = 1 USD по курсу ЦБ)\n"
               "3. Копите и меняйте на призы из каталога\n\n"
               "По вопросам: @delixi_support",
         "uz": "<b>Qanday ishlaydi:</b>\n\n"
               "1. Har bir xaridda sotuvchiga QR-kodni ko'rsating\n"
-              "2. Avtomatik bonus oling (foiz xarid summasiga bog'liq)\n"
+              "2. Avtomatik ball oling (1 ball = 1 USD, MB kursi bo'yicha)\n"
               "3. To'plang va katalogdan sovg'aga almashtiring\n\n"
               "Savollar: @delixi_support",
     },
@@ -206,11 +206,13 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     "notify_purchase": {
         "ru": "✅ <b>Покупка подтверждена</b>\n\n"
               "Сумма: <b>{amount}</b> сум\n"
-              "Начислено бонусов: <b>+{bonus}</b>\n"
+              "Начислено баллов: <b>+{bonus}</b>\n"
+              "Курс USD: {rate}\n"
               "Баланс: <b>{balance}</b>",
         "uz": "✅ <b>Xarid tasdiqlandi</b>\n\n"
               "Summa: <b>{amount}</b> so'm\n"
-              "Qo'shilgan bonus: <b>+{bonus}</b>\n"
+              "Qo'shilgan ball: <b>+{bonus}</b>\n"
+              "USD kursi: {rate}\n"
               "Balans: <b>{balance}</b>",
     },
     "notify_redemption_approved": {
@@ -282,11 +284,15 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
               "/pending — заявки на призы\n"
               "/sellers — список продавцов\n"
               "/make_seller &lt;telegram_id&gt; &lt;region_code&gt; — назначить продавца\n"
+              "/rate — текущий курс USD\n"
+              "/update_rate — обновить курс с cbu.uz\n"
               "/report — оборот за 7 дней",
         "uz": "🛠 <b>Admin paneli</b>\n\n"
               "/pending — sovg'a arizalari\n"
               "/sellers — sotuvchilar ro'yxati\n"
               "/make_seller &lt;telegram_id&gt; &lt;region_code&gt; — sotuvchi tayinlash\n"
+              "/rate — joriy USD kursi\n"
+              "/update_rate — kursni cbu.uz dan yangilash\n"
               "/report — 7 kunlik aylanma",
     },
     "no_pending": {
@@ -297,11 +303,11 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "ru": "📨 <b>Заявка</b>\n"
               "Клиент: {customer}\n"
               "Приз: <b>{prize}</b>\n"
-              "Стоимость: <b>{cost}</b> бонусов",
+              "Стоимость: <b>{cost}</b> баллов",
         "uz": "📨 <b>Ariza</b>\n"
               "Mijoz: {customer}\n"
               "Sovg'a: <b>{prize}</b>\n"
-              "Narxi: <b>{cost}</b> bonus",
+              "Narxi: <b>{cost}</b> ball",
     },
     "approve_btn": {
         "ru": "✅ Одобрить",
@@ -362,6 +368,24 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     "made_seller": {
         "ru": "✅ {name} теперь продавец в регионе {code}",
         "uz": "✅ {name} endi {code} viloyatida sotuvchi",
+    },
+
+    # ---------- USD rate ----------
+    "rate_current": {
+        "ru": "💱 Текущий курс USD: <b>{rate}</b> сум",
+        "uz": "💱 Joriy USD kursi: <b>{rate}</b> so'm",
+    },
+    "rate_updating": {
+        "ru": "⏳ Обновляю курс с cbu.uz...",
+        "uz": "⏳ Kurs cbu.uz dan yangilanmoqda...",
+    },
+    "rate_updated": {
+        "ru": "✅ Курс обновлён: <b>{rate}</b> сум/USD",
+        "uz": "✅ Kurs yangilandi: <b>{rate}</b> so'm/USD",
+    },
+    "rate_update_failed": {
+        "ru": "⚠️ Не удалось получить курс с cbu.uz. Используется последний сохранённый.",
+        "uz": "⚠️ cbu.uz dan kursni olishda xatolik. Oxirgi saqlangan qiymat ishlatilmoqda.",
     },
 }
 

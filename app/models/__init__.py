@@ -9,10 +9,12 @@ from app.models.models import (
     Prize,
     Redemption,
     RedemptionStatus,
+    ExchangeRate,
 )
 
 __all__ = [
     "Region", "User", "UserRole", "BonusTier",
     "Transaction", "BonusLedger", "LedgerReason",
     "Prize", "Redemption", "RedemptionStatus",
+    "ExchangeRate",
 ]
