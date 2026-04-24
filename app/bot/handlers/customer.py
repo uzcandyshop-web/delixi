@@ -13,6 +13,7 @@ from aiogram.types import (
 from app.config import get_settings
 from app.core.qr import qr_encode
 from app.core.qr_image import make_qr_png
+from app.core.prize_card import make_prize_card
 from app.core.i18n import t, LANG_NAMES, SUPPORTED_LANGS, DEFAULT_LANG, normalize_lang
 from app.db import SessionLocal
 from app.models import User, Region, UserRole, Transaction, Prize
@@ -347,7 +348,7 @@ async def show_prizes(m: Message):
             db.query(Prize)
             .filter(Prize.is_active.is_(True), Prize.stock > 0)
             .order_by(Prize.cost_bonus)
-            .limit(20)
+            .limit(10)
             .all()
         )
 
@@ -368,14 +369,26 @@ async def show_prizes(m: Message):
                     )
                 ]]
             )
-        text = (
-            f"<b>{p.name}</b>\n"
-            f"{t('prize_cost', lang, cost=_fmt(p.cost_bonus))}\n"
-            f"{t('prize_stock', lang, stock=p.stock)}"
-        )
+
+        # Caption: stock info + description
+        caption_lines = [f"<b>{p.name}</b>"]
+        caption_lines.append(t("prize_stock", lang, stock=p.stock))
         if p.description:
-            text += f"\n\n{p.description}"
-        await m.answer(text, reply_markup=kb)
+            caption_lines.append("")
+            caption_lines.append(p.description)
+        caption = "\n".join(caption_lines)
+
+        png = make_prize_card(
+            prize_name=p.name,
+            cost=p.cost_bonus,
+            balance=balance,
+            lang=lang,
+        )
+        await m.answer_photo(
+            BufferedInputFile(png, filename="prize.png"),
+            caption=caption,
+            reply_markup=kb,
+        )
 
 
 @router.callback_query(F.data.startswith("redeem:"))
