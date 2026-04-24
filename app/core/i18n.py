@@ -368,6 +368,113 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "uz": "✅ {name} endi {code} viloyatida sotuvchi",
     },
 
+    # ---------- Support requests ----------
+    "support_choose_category": {
+        "ru": "❓ <b>Помощь</b>\n\nВыберите категорию обращения:",
+        "uz": "❓ <b>Yordam</b>\n\nMurojaat toifasini tanlang:",
+    },
+    "support_cat_engineer": {"ru": "🔧 Вызов инженера", "uz": "🔧 Muhandis chaqirish"},
+    "support_cat_complaint": {"ru": "⚠️ Жалоба", "uz": "⚠️ Shikoyat"},
+    "support_cat_techsupport": {"ru": "💬 Техподдержка", "uz": "💬 Texnik yordam"},
+
+    "support_ask_text": {
+        "ru": "📝 Опишите вашу проблему или вопрос:",
+        "uz": "📝 Muammo yoki savolingizni yozing:",
+    },
+    "support_ask_photo": {
+        "ru": "📷 При желании прикрепите фото (или нажмите «Пропустить»):",
+        "uz": "📷 Istasangiz rasm biriktiring (yoki «O'tkazib yuborish» bosing):",
+    },
+    "support_skip_photo": {"ru": "Пропустить", "uz": "O'tkazib yuborish"},
+    "support_send_photo_hint": {
+        "ru": "Отправьте фото как изображение (не файл), или нажмите «Пропустить».",
+        "uz": "Rasmni fayl sifatida emas, rasm sifatida yuboring yoki «O'tkazib yuborish» bosing.",
+    },
+
+    "err_text_empty": {
+        "ru": "❌ Текст обращения не может быть пустым. Напишите описание проблемы.",
+        "uz": "❌ Murojaat matni bo'sh bo'lmasligi kerak. Muammoni yozing.",
+    },
+    "err_text_too_long": {
+        "ru": "❌ Слишком длинный текст (больше 4000 символов). Сократите.",
+        "uz": "❌ Matn juda uzun (4000 belgidan oshmasin). Qisqartiring.",
+    },
+    "support_group_not_configured": {
+        "ru": "⚠️ Эта категория поддержки временно недоступна. Попробуйте позже или свяжитесь с администратором.",
+        "uz": "⚠️ Bu yordam toifasi vaqtincha mavjud emas. Keyinroq urinib ko'ring yoki administrator bilan bog'laning.",
+    },
+    "support_submitted": {
+        "ru": "✅ <b>Заявка №{short_id} отправлена!</b>\n\n"
+              "Мы свяжемся с вами после обработки обращения. "
+              "Вы получите уведомление когда заявка будет закрыта.",
+        "uz": "✅ <b>№{short_id} arizangiz yuborildi!</b>\n\n"
+              "Murojaatingiz ko'rib chiqilgandan so'ng biz siz bilan bog'lanamiz. "
+              "Ariza yopilganda xabar olasiz.",
+    },
+
+    # ---------- Group messages (in support Telegram groups) ----------
+    "group_new_request": {
+        "ru": "📨 <b>Новая заявка #{short_id}</b>\n"
+              "Категория: {cat_emoji} {cat_name}\n"
+              "От: <b>{name}</b>\n"
+              "Телефон: {phone}\n"
+              "Регион: {region}\n"
+              "─────\n"
+              "{text}",
+        "uz": "📨 <b>Yangi ariza #{short_id}</b>\n"
+              "Toifa: {cat_emoji} {cat_name}\n"
+              "Kimdan: <b>{name}</b>\n"
+              "Telefon: {phone}\n"
+              "Viloyat: {region}\n"
+              "─────\n"
+              "{text}",
+    },
+    "group_btn_accept": {"ru": "✅ Принять", "uz": "✅ Qabul qilish"},
+    "group_btn_in_progress": {"ru": "🔄 В работу", "uz": "🔄 Ish boshlash"},
+    "group_btn_resolve": {"ru": "✔️ Решено", "uz": "✔️ Hal qilindi"},
+    "group_btn_reject": {"ru": "❌ Отклонить", "uz": "❌ Rad etish"},
+    "group_status_updated": {
+        "ru": "\n\n📌 Статус: <b>{status}</b>\nОбновил: {resolver_name}",
+        "uz": "\n\n📌 Holat: <b>{status}</b>\nYangiladi: {resolver_name}",
+    },
+    "group_status_accepted": {"ru": "Принята", "uz": "Qabul qilindi"},
+    "group_status_in_progress": {"ru": "В работе", "uz": "Ish jarayonida"},
+    "group_status_resolved": {"ru": "Решена ✔️", "uz": "Hal qilindi ✔️"},
+    "group_status_rejected": {"ru": "Отклонена ❌", "uz": "Rad etildi ❌"},
+    "group_already_closed": {"ru": "Заявка уже закрыта", "uz": "Ariza yopilgan"},
+
+    # ---------- Customer notifications about support ----------
+    "notify_support_resolved": {
+        "ru": "✔️ <b>Ваша заявка №{short_id} ({category}) решена!</b>{extra}\n\n"
+              "Если у вас остались вопросы — создайте новое обращение.",
+        "uz": "✔️ <b>№{short_id} ({category}) arizangiz hal qilindi!</b>{extra}\n\n"
+              "Agar savollaringiz qolsa — yangi ariza yuboring.",
+    },
+    "notify_support_rejected": {
+        "ru": "❌ <b>Ваша заявка №{short_id} ({category}) отклонена.</b>{extra}",
+        "uz": "❌ <b>№{short_id} ({category}) arizangiz rad etildi.</b>{extra}",
+    },
+
+    # ---------- /bind_support_group command ----------
+    "bind_group_usage": {
+        "ru": "Используйте в группе: <code>/bind_support_group engineer|complaint|techsupport</code>\n"
+              "Или настройте ID групп в Environment Variables.",
+        "uz": "Guruhda foydalaning: <code>/bind_support_group engineer|complaint|techsupport</code>\n"
+              "Yoki Environment Variables da guruh ID larini sozlang.",
+    },
+    "bind_group_not_in_group": {
+        "ru": "Команду нужно отправлять в групповом чате, куда должны приходить заявки.",
+        "uz": "Buyruqni arizalar keladigan guruh chatida yuborish kerak.",
+    },
+    "bind_group_shown": {
+        "ru": "ID этого чата: <code>{chat_id}</code>\n\n"
+              "Добавьте его в Render Environment как:\n"
+              "<code>SUPPORT_{CAT}_CHAT_ID={chat_id}</code>",
+        "uz": "Ushbu chat ID: <code>{chat_id}</code>\n\n"
+              "Uni Render Environment ga qo'shing:\n"
+              "<code>SUPPORT_{CAT}_CHAT_ID={chat_id}</code>",
+    },
+
     # ---------- USD rate ----------
     "rate_current": {
         "ru": "💱 Текущий курс USD: <b>{rate}</b> сум",

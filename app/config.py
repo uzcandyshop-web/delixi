@@ -16,6 +16,27 @@ class Settings(BaseSettings):
     database_url: str = Field(..., alias="DATABASE_URL")
     admin_tg_ids: str = Field(default="", alias="ADMIN_TG_IDS")
 
+    # Support group chat IDs (Telegram group/supergroup IDs, negative numbers).
+    # Empty string means "not configured" — support handler will reject requests
+    # until admin adds group via /bind_support_group in that group.
+    support_engineer_chat_id: str = Field(default="", alias="SUPPORT_ENGINEER_CHAT_ID")
+    support_complaint_chat_id: str = Field(default="", alias="SUPPORT_COMPLAINT_CHAT_ID")
+    support_techsupport_chat_id: str = Field(default="", alias="SUPPORT_TECHSUPPORT_CHAT_ID")
+
+    def get_support_chat_id(self, category: str) -> int | None:
+        """Return the configured chat_id for a support category, or None."""
+        raw = {
+            "engineer": self.support_engineer_chat_id,
+            "complaint": self.support_complaint_chat_id,
+            "techsupport": self.support_techsupport_chat_id,
+        }.get(category, "")
+        if not raw.strip():
+            return None
+        try:
+            return int(raw.strip())
+        except ValueError:
+            return None
+
     @property
     def admin_tg_id_set(self) -> set[int]:
         if not self.admin_tg_ids.strip():

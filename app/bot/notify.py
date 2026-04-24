@@ -71,3 +71,23 @@ async def notify_redemption_rejected(
         )
     except Exception as e:
         log.warning("notify_redemption_reject failed for %s: %s", telegram_id, e)
+
+
+async def notify_support_closed(
+    telegram_id: int,
+    category: str,
+    short_id: str,
+    resolved: bool,
+    note: str | None,
+    lang: str = DEFAULT_LANG,
+) -> None:
+    """Notify the customer when their support request is closed."""
+    key = "notify_support_resolved" if resolved else "notify_support_rejected"
+    extra = t("rejection_reason", lang, note=note) if note else ""
+    try:
+        await _get_bot().send_message(
+            telegram_id,
+            t(key, lang, short_id=short_id, category=category, extra=extra),
+        )
+    except Exception as e:
+        log.warning("notify_support_closed failed for %s: %s", telegram_id, e)

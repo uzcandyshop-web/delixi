@@ -424,12 +424,6 @@ async def redeem_callback(cb: CallbackQuery):
     await cb.message.answer(t("redemption_submitted", lang, prize=prize_name))
 
 
-@router.message(_in_any("menu_help"))
-async def help_msg(m: Message):
-    lang = _get_user_lang(m.from_user.id)
-    await m.answer(t("help_text", lang))
-
-
 @router.message(Command("qr"))
 async def qr_cmd(m: Message):
     await show_qr(m)

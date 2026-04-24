@@ -233,3 +233,61 @@ class ExchangeRate(Base):
             "currency", "effective_date", unique=True,
         ),
     )
+
+
+# ---------- Support requests ----------
+class SupportCategory(str, Enum):
+    ENGINEER = "engineer"
+    COMPLAINT = "complaint"
+    TECHSUPPORT = "techsupport"
+
+
+class SupportStatus(str, Enum):
+    OPEN = "open"
+    ACCEPTED = "accepted"
+    IN_PROGRESS = "in_progress"
+    RESOLVED = "resolved"
+    REJECTED = "rejected"
+
+
+class SupportRequest(Base):
+    __tablename__ = "support_requests"
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, server_default=text("gen_random_uuid()")
+    )
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id"), nullable=False
+    )
+    category: Mapped[str] = mapped_column(String(16), nullable=False)
+    content: Mapped[str] = mapped_column(String, nullable=False)
+    photo_file_id: Mapped[str | None] = mapped_column(String(512))
+    status: Mapped[str] = mapped_column(
+        String(16), nullable=False, default=SupportStatus.OPEN.value
+    )
+    group_chat_id: Mapped[int | None] = mapped_column(BigInteger)
+    group_message_id: Mapped[int | None] = mapped_column(BigInteger)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=text("NOW()")
+    )
+    resolved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    resolver_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id")
+    )
+    resolution_note: Mapped[str | None] = mapped_column(String)
+
+    user: Mapped["User"] = relationship(foreign_keys=[user_id])
+    resolver: Mapped["User"] = relationship(foreign_keys=[resolver_id])
+
+    __table_args__ = (
+        CheckConstraint(
+            "category IN ('engineer','complaint','techsupport')",
+            name="chk_support_category",
+        ),
+        CheckConstraint(
+            "status IN ('open','accepted','in_progress','resolved','rejected')",
+            name="chk_support_status",
+        ),
+        Index("idx_support_user_created", "user_id", "created_at"),
+        Index("idx_support_status_created", "status", "created_at"),
+    )
