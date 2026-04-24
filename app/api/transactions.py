@@ -45,7 +45,6 @@ async def create_tx(
             bonus=tx.bonus_amount,
             balance=balance,
             lang=tx.customer.language,
-            usd_rate=tx.usd_rate,
         )
     )
 

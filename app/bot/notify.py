@@ -32,14 +32,12 @@ async def notify_purchase(
     bonus: Decimal,
     balance: Decimal,
     lang: str = DEFAULT_LANG,
-    usd_rate: Decimal | None = None,
 ) -> None:
     text = t(
         "notify_purchase", lang,
         amount=_fmt(amount),
         bonus=_fmt(bonus),
         balance=_fmt(balance),
-        rate=_fmt(usd_rate) if usd_rate is not None else "—",
     )
     try:
         await _get_bot().send_message(telegram_id, text)

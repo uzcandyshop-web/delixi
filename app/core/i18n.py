@@ -207,12 +207,10 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "ru": "✅ <b>Покупка подтверждена</b>\n\n"
               "Сумма: <b>{amount}</b> сум\n"
               "Начислено баллов: <b>+{bonus}</b>\n"
-              "Курс USD: {rate}\n"
               "Баланс: <b>{balance}</b>",
         "uz": "✅ <b>Xarid tasdiqlandi</b>\n\n"
               "Summa: <b>{amount}</b> so'm\n"
               "Qo'shilgan ball: <b>+{bonus}</b>\n"
-              "USD kursi: {rate}\n"
               "Balans: <b>{balance}</b>",
     },
     "notify_redemption_approved": {

@@ -182,10 +182,11 @@ async def make_seller(m: Message):
 
 @router.message(Command("rate"))
 async def cmd_rate(m: Message):
-    """Show the current USD rate (any registered user can check)."""
+    """Show the current USD rate (admin only — hidden from customers and sellers)."""
+    if not _is_admin(m.from_user.id):
+        return
+    lang = _admin_lang(m.from_user.id)
     with SessionLocal() as db:
-        user = db.query(User).filter(User.telegram_id == m.from_user.id).first()
-        lang = user.language if user else DEFAULT_LANG
         rate = get_current_rate(db)
     await m.answer(t("rate_current", lang, rate=_fmt(rate)))
 
