@@ -77,8 +77,9 @@
     </div>
     <button id="submitBtn"></button>
     <button id="rescanBtn" class="secondary"></button>
-    <div id="status"></div>
   </div>
+
+  <div id="status"></div>
 
   <script>
     // ----------- i18n -----------
@@ -159,16 +160,20 @@
     // Diagnose initData early
     const initDataOk = tg.initData && tg.initData.length > 10;
     if (!initDataOk) {
-      // Show diagnostic banner right away
       setTimeout(() => {
-        showStatus(
-          "⚠️ initData пустая — Telegram не подписал эту сессию.\n" +
-          "platform=" + (tg.platform || "?") +
-          ", version=" + (tg.version || "?") +
-          ", user=" + (tg.initDataUnsafe?.user?.id || "none") + "\n\n" +
-          "Открой WebApp через кнопку 📸 в клавиатуре бота (не через Menu Button).",
-          "error"
-        );
+        const info = [
+          "⚠️ initData пустая",
+          "platform=" + tg.platform,
+          "version=" + tg.version,
+          "initData.length=" + (tg.initData || "").length,
+          "user=" + (tg.initDataUnsafe?.user?.id || "none"),
+          "query_id=" + (tg.initDataUnsafe?.query_id || "none"),
+          "auth_date=" + (tg.initDataUnsafe?.auth_date || "none"),
+          "hash=" + (tg.initDataUnsafe?.hash ? "present" : "none"),
+          "start_param=" + (tg.initDataUnsafe?.start_param || "none"),
+          "location=" + location.href,
+        ].join("\n");
+        showStatus(info, "error");
       }, 500);
     }
 
