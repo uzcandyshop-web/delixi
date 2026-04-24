@@ -243,23 +243,6 @@
         return;
       }
 
-      // Diagnostic: confirm Telegram signed this WebApp session
-      if (!tg.initData || tg.initData.length < 10) {
-        showStatus(
-          "⚠️ Telegram initData пустая.\n" +
-          "Диагностика:\n" +
-          "• platform: " + (tg.platform || "unknown") + "\n" +
-          "• version: " + (tg.version || "unknown") + "\n" +
-          "• initData length: " + (tg.initData || "").length + "\n" +
-          "• user: " + (tg.initDataUnsafe?.user?.id || "none") + "\n\n" +
-          "Откройте WebApp ТОЛЬКО через кнопку 📸 в клавиатуре бота после /seller. " +
-          "Menu Button от BotFather не подписывает initData.",
-          "error"
-        );
-        submitBtn.disabled = false;
-        return;
-      }
-
       submitBtn.disabled = true;
       clearStatus();
 
@@ -268,7 +251,7 @@
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'tg ' + tg.initData,
+            'Authorization': 'tg ' + (tg.initData || ''),
           },
           body: JSON.stringify({
             qr_token: qrToken,
