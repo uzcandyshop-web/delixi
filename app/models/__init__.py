@@ -13,6 +13,10 @@ from app.models.models import (
     SupportRequest,
     SupportCategory,
     SupportStatus,
+    Contest,
+    ContestWork,
+    ContestScore,
+    WorkStatus,
 )
 
 __all__ = [
@@ -21,4 +25,5 @@ __all__ = [
     "Prize", "Redemption", "RedemptionStatus",
     "ExchangeRate",
     "SupportRequest", "SupportCategory", "SupportStatus",
+    "Contest", "ContestWork", "ContestScore", "WorkStatus",
 ]

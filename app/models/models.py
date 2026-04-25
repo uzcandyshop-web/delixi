@@ -16,6 +16,7 @@ class UserRole(str, Enum):
     CUSTOMER = "customer"
     SELLER = "seller"
     ADMIN = "admin"
+    JUDGE = "judge"
 
 
 class LedgerReason(str, Enum):
@@ -71,7 +72,9 @@ class User(Base):
     region: Mapped["Region"] = relationship(back_populates="users")
 
     __table_args__ = (
-        CheckConstraint("role IN ('customer','seller','admin')", name="chk_user_role"),
+        CheckConstraint(
+            "role IN ('customer','seller','admin','judge')", name="chk_user_role",
+        ),
         CheckConstraint("language IN ('ru','uz')", name="chk_user_language"),
         Index("idx_users_region", "region_id"),
         Index("idx_users_role", "role"),
@@ -290,4 +293,102 @@ class SupportRequest(Base):
         ),
         Index("idx_support_user_created", "user_id", "created_at"),
         Index("idx_support_status_created", "status", "created_at"),
+    )
+
+
+# ---------- Contests ----------
+class WorkStatus(str, Enum):
+    PENDING = "pending"       # just submitted, awaiting scores
+    SCORING = "scoring"       # at least one judge has scored
+    FINALIZED = "finalized"   # all judges scored, average computed
+
+
+class Contest(Base):
+    __tablename__ = "contests"
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, server_default=text("gen_random_uuid()")
+    )
+    name: Mapped[str] = mapped_column(String(200), nullable=False)
+    description: Mapped[str | None] = mapped_column(String)
+    judge_chat_id: Mapped[int | None] = mapped_column(BigInteger)
+    is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=text("NOW()")
+    )
+    ended_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+class ContestWork(Base):
+    __tablename__ = "contest_works"
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, server_default=text("gen_random_uuid()")
+    )
+    contest_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("contests.id"), nullable=False
+    )
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id"), nullable=False
+    )
+    photo_file_id: Mapped[str] = mapped_column(String(512), nullable=False)
+    description: Mapped[str | None] = mapped_column(String)
+    status: Mapped[str] = mapped_column(
+        String(16), nullable=False, default=WorkStatus.PENDING.value
+    )
+    group_chat_id: Mapped[int | None] = mapped_column(BigInteger)
+    group_message_id: Mapped[int | None] = mapped_column(BigInteger)
+    submitted_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=text("NOW()")
+    )
+    average_score: Mapped[Decimal | None] = mapped_column(Numeric(4, 2))
+
+    contest: Mapped["Contest"] = relationship()
+    user: Mapped["User"] = relationship()
+    scores: Mapped[list["ContestScore"]] = relationship(
+        back_populates="work", cascade="all, delete-orphan"
+    )
+
+    __table_args__ = (
+        CheckConstraint(
+            "status IN ('pending','scoring','finalized')", name="chk_work_status",
+        ),
+        Index("idx_works_contest_user", "contest_id", "user_id"),
+        Index("idx_works_status", "status"),
+    )
+
+
+class ContestScore(Base):
+    __tablename__ = "contest_scores"
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, server_default=text("gen_random_uuid()")
+    )
+    work_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("contest_works.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    judge_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id"), nullable=False
+    )
+    c1: Mapped[int] = mapped_column(Integer, nullable=False)
+    c2: Mapped[int] = mapped_column(Integer, nullable=False)
+    c3: Mapped[int] = mapped_column(Integer, nullable=False)
+    c4: Mapped[int] = mapped_column(Integer, nullable=False)
+    c5: Mapped[int] = mapped_column(Integer, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=text("NOW()")
+    )
+
+    work: Mapped["ContestWork"] = relationship(back_populates="scores")
+    judge: Mapped["User"] = relationship()
+
+    __table_args__ = (
+        CheckConstraint(
+            "c1 BETWEEN 1 AND 10 AND c2 BETWEEN 1 AND 10 AND "
+            "c3 BETWEEN 1 AND 10 AND c4 BETWEEN 1 AND 10 AND c5 BETWEEN 1 AND 10",
+            name="chk_score_range",
+        ),
+        Index("uq_work_judge", "work_id", "judge_id", unique=True),
     )

@@ -54,7 +54,8 @@ def _main_kb(role: str, lang: str) -> ReplyKeyboardMarkup:
         rows = [
             [KeyboardButton(text=t("menu_qr", lang)), KeyboardButton(text=t("menu_balance", lang))],
             [KeyboardButton(text=t("menu_prizes", lang)), KeyboardButton(text=t("menu_history", lang))],
-            [KeyboardButton(text=t("menu_help", lang)), KeyboardButton(text=t("menu_language", lang))],
+            [KeyboardButton(text=t("menu_contest", lang)), KeyboardButton(text=t("menu_help", lang))],
+            [KeyboardButton(text=t("menu_language", lang))],
         ]
     else:
         rows = [

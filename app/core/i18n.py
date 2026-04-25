@@ -110,6 +110,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     "menu_prizes": {"ru": "🎁 Призы", "uz": "🎁 Sovg'alar"},
     "menu_history": {"ru": "📜 История", "uz": "📜 Tarix"},
     "menu_help": {"ru": "❓ Помощь", "uz": "❓ Yordam"},
+    "menu_contest": {"ru": "🏆 Конкурс", "uz": "🏆 Tanlov"},
     "menu_language": {"ru": "🌐 Язык", "uz": "🌐 Til"},
 
     # ---------- QR / balance / history ----------
@@ -283,15 +284,23 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
               "/sellers — список продавцов\n"
               "/make_seller &lt;telegram_id&gt; &lt;region_code&gt; — назначить продавца\n"
               "/rate — текущий курс USD\n"
-              "/update_rate — обновить курс с cbu.uz\n"
-              "/report — оборот за 7 дней",
+              "/update_rate — обновить курс с cbu.uz\n\n"
+              "<b>Конкурс:</b>\n"
+              "/start_contest Название | Описание — запустить\n"
+              "/end_contest — завершить + топ-10\n"
+              "/make_judge &lt;telegram_id&gt; — назначить судью\n"
+              "/judges — список судей",
         "uz": "🛠 <b>Admin paneli</b>\n\n"
               "/pending — sovg'a arizalari\n"
               "/sellers — sotuvchilar ro'yxati\n"
               "/make_seller &lt;telegram_id&gt; &lt;region_code&gt; — sotuvchi tayinlash\n"
               "/rate — joriy USD kursi\n"
-              "/update_rate — kursni cbu.uz dan yangilash\n"
-              "/report — 7 kunlik aylanma",
+              "/update_rate — kursni cbu.uz dan yangilash\n\n"
+              "<b>Tanlov:</b>\n"
+              "/start_contest Nomi | Tavsif — boshlash\n"
+              "/end_contest — yakunlash + top-10\n"
+              "/make_judge &lt;telegram_id&gt; — hakam tayinlash\n"
+              "/judges — hakamlar ro'yxati",
     },
     "no_pending": {
         "ru": "Нет заявок на рассмотрении.",
@@ -473,6 +482,185 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "uz": "Ushbu chat ID: <code>{chat_id}</code>\n\n"
               "Uni Render Environment ga qo'shing:\n"
               "<code>SUPPORT_{CAT}_CHAT_ID={chat_id}</code>",
+    },
+
+    # ---------- Contest: customer-side ----------
+    "contest_none_active": {
+        "ru": "🏆 Сейчас нет активного конкурса. Следите за обновлениями!",
+        "uz": "🏆 Hozir faol tanlov yo'q. Yangiliklarni kuzatib boring!",
+    },
+    "contest_info": {
+        "ru": "🏆 <b>{name}</b>\n\n{description}\n\n"
+              "Нажмите кнопку ниже, чтобы отправить работу на конкурс.",
+        "uz": "🏆 <b>{name}</b>\n\n{description}\n\n"
+              "Ishingizni tanlovga yuborish uchun pastdagi tugmani bosing.",
+    },
+    "contest_submit_btn": {"ru": "📤 Отправить работу", "uz": "📤 Ishni yuborish"},
+    "contest_ask_photo": {
+        "ru": "📷 Отправьте <b>фото</b> вашей работы:",
+        "uz": "📷 Ishingizning <b>rasmini</b> yuboring:",
+    },
+    "contest_photo_hint": {
+        "ru": "Пожалуйста, отправьте именно фото (как изображение, не файл).",
+        "uz": "Iltimos, faqat rasm yuboring (fayl sifatida emas).",
+    },
+    "contest_ask_description": {
+        "ru": "📝 Добавьте описание работы (или нажмите «Пропустить»):",
+        "uz": "📝 Ish tavsifini qo'shing (yoki «O'tkazib yuborish» bosing):",
+    },
+    "contest_skip_description": {"ru": "Пропустить", "uz": "O'tkazib yuborish"},
+    "contest_description_too_long": {
+        "ru": "❌ Описание слишком длинное (максимум 2000 символов).",
+        "uz": "❌ Tavsif juda uzun (maksimum 2000 belgi).",
+    },
+    "contest_submitted": {
+        "ru": "✅ Работа №{short_id} отправлена на конкурс!\n\n"
+              "Жюри оценит её в ближайшее время. Вы получите уведомление с итоговой оценкой.",
+        "uz": "✅ №{short_id} ishingiz tanlovga yuborildi!\n\n"
+              "Hakamlar yaqin vaqtda baholaydi. Yakuniy baho bilan xabar olasiz.",
+    },
+    "contest_judges_unavailable": {
+        "ru": "⚠️ Группа жюри не настроена. Свяжитесь с администратором.",
+        "uz": "⚠️ Hakamlar guruhi sozlanmagan. Administrator bilan bog'laning.",
+    },
+
+    # ---------- Contest: group-side messages ----------
+    "group_new_work": {
+        "ru": "🏆 <b>Работа #{short_id}</b>\n"
+              "Автор: <b>{name}</b>\n"
+              "Телефон: {phone}\n"
+              "Регион: {region}\n"
+              "─────\n"
+              "{description}\n\n"
+              "Оценили: {scored}/{total} судей",
+        "uz": "🏆 <b>Ish #{short_id}</b>\n"
+              "Muallif: <b>{name}</b>\n"
+              "Telefon: {phone}\n"
+              "Viloyat: {region}\n"
+              "─────\n"
+              "{description}\n\n"
+              "Baholadi: {scored}/{total} hakam",
+    },
+    "group_work_finalized": {
+        "ru": "🏁 <b>Работа #{short_id}</b> (финал)\n"
+              "Автор: <b>{name}</b>\n"
+              "Телефон: {phone}\n"
+              "Регион: {region}\n"
+              "─────\n"
+              "{description}\n\n"
+              "⭐ <b>Итоговая оценка: {avg}/10</b>",
+        "uz": "🏁 <b>Ish #{short_id}</b> (yakun)\n"
+              "Muallif: <b>{name}</b>\n"
+              "Telefon: {phone}\n"
+              "Viloyat: {region}\n"
+              "─────\n"
+              "{description}\n\n"
+              "⭐ <b>Yakuniy baho: {avg}/10</b>",
+    },
+    "group_btn_score": {"ru": "⭐ Оценить", "uz": "⭐ Baholash"},
+    "contest_work_not_found": {
+        "ru": "Работа не найдена",
+        "uz": "Ish topilmadi",
+    },
+    "contest_not_a_judge": {
+        "ru": "У вас нет роли судьи",
+        "uz": "Sizda hakam roli yo'q",
+    },
+    "contest_already_scored": {
+        "ru": "Вы уже оценили эту работу",
+        "uz": "Bu ishni allaqachon baholadingiz",
+    },
+    "score_open_dm_first": {
+        "ru": "Сначала напишите боту в личные сообщения (/start)",
+        "uz": "Avval botga shaxsiy xabar yozing (/start)",
+    },
+
+    # ---------- Scoring FSM prompts ----------
+    "score_start": {
+        "ru": "⭐ Оценка работы #{work_short}\n\nОцените работу по 5 критериям (от 1 до 10).",
+        "uz": "⭐ #{work_short} ishni baholash\n\nIshni 5 mezon bo'yicha baholang (1 dan 10 gacha).",
+    },
+    "score_ask_c1": {
+        "ru": "<b>1/5 Оригинальность</b>\nНасколько работа оригинальна и неповторима?",
+        "uz": "<b>1/5 Originallik</b>\nIsh qanchalik original va betakror?",
+    },
+    "score_ask_c2": {
+        "ru": "<b>2/5 Качество исполнения</b>\nНасколько качественно выполнена работа?",
+        "uz": "<b>2/5 Bajarilish sifati</b>\nIsh qanchalik sifatli bajarilgan?",
+    },
+    "score_ask_c3": {
+        "ru": "<b>3/5 Соответствие теме</b>\nНасколько работа соответствует теме конкурса?",
+        "uz": "<b>3/5 Mavzuga muvofiqligi</b>\nIsh tanlov mavzusiga qanchalik mos?",
+    },
+    "score_ask_c4": {
+        "ru": "<b>4/5 Креативность</b>\nНасколько творческий подход у автора?",
+        "uz": "<b>4/5 Ijodkorlik</b>\nMuallifning ijodiy yondashuvi qanchalik yaxshi?",
+    },
+    "score_ask_c5": {
+        "ru": "<b>5/5 Общее впечатление</b>\nВаше общее впечатление от работы?",
+        "uz": "<b>5/5 Umumiy taassurot</b>\nIshdan umumiy taassurotingiz?",
+    },
+    "score_saved": {
+        "ru": "✅ Спасибо! Ваша средняя оценка: <b>{avg}/10</b>.",
+        "uz": "✅ Rahmat! Sizning o'rtacha bahoyingiz: <b>{avg}/10</b>.",
+    },
+    "score_err_already_scored": {
+        "ru": "❌ Вы уже оценили эту работу.",
+        "uz": "❌ Bu ishni allaqachon baholagansiz.",
+    },
+    "score_err_not_a_judge": {
+        "ru": "❌ У вас нет роли судьи.",
+        "uz": "❌ Sizda hakam roli yo'q.",
+    },
+
+    # ---------- Notification: contest result ----------
+    "notify_contest_finalized": {
+        "ru": "🏁 <b>Ваша работа №{short_id} получила итоговую оценку!</b>\n\n"
+              "⭐ Средний балл: <b>{avg}/10</b>\n\n"
+              "Спасибо за участие в конкурсе!",
+        "uz": "🏁 <b>№{short_id} ishingiz yakuniy bahoni oldi!</b>\n\n"
+              "⭐ O'rtacha ball: <b>{avg}/10</b>\n\n"
+              "Tanlovda ishtirok etganingiz uchun rahmat!",
+    },
+
+    # ---------- Admin: contest commands ----------
+    "contest_cmd_usage": {
+        "ru": "Использование: <code>/start_contest Название конкурса | Описание</code>\n"
+              "Команду нужно вызвать в группе жюри — тогда бот запомнит её как чат для отправки работ.",
+        "uz": "Foydalanish: <code>/start_contest Tanlov nomi | Tavsif</code>\n"
+              "Buyruqni hakamlar guruhida yuboring — bot uni ishlar yuboriladigan chat sifatida saqlaydi.",
+    },
+    "contest_started": {
+        "ru": "✅ Конкурс «{name}» запущен.\nГруппа жюри: <code>{judges_chat}</code>",
+        "uz": "✅ «{name}» tanlovi boshlandi.\nHakamlar guruhi: <code>{judges_chat}</code>",
+    },
+    "contest_results_header": {
+        "ru": "🏆 <b>Итоги конкурса «{name}»</b>\n",
+        "uz": "🏆 <b>«{name}» tanlovi natijalari</b>\n",
+    },
+    "contest_results_empty": {
+        "ru": "Работ с финальной оценкой не было.",
+        "uz": "Yakuniy baholangan ishlar bo'lmadi.",
+    },
+    "contest_results_line": {
+        "ru": "{place}. {name} — <b>{avg}/10</b>",
+        "uz": "{place}. {name} — <b>{avg}/10</b>",
+    },
+    "make_judge_usage": {
+        "ru": "Использование: <code>/make_judge &lt;telegram_id&gt;</code>",
+        "uz": "Foydalanish: <code>/make_judge &lt;telegram_id&gt;</code>",
+    },
+    "made_judge": {
+        "ru": "✅ {name} теперь судья конкурса",
+        "uz": "✅ {name} endi tanlov hakami",
+    },
+    "judges_empty": {
+        "ru": "Судей пока нет. Используйте /make_judge",
+        "uz": "Hakamlar hali yo'q. /make_judge dan foydalaning",
+    },
+    "judges_header": {
+        "ru": "<b>Судьи:</b>\n",
+        "uz": "<b>Hakamlar:</b>\n",
     },
 
     # ---------- USD rate ----------

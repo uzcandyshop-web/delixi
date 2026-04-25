@@ -6,7 +6,7 @@ from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 from aiogram.fsm.storage.memory import MemoryStorage
 from app.config import get_settings
-from app.bot.handlers import customer, seller, admin as admin_handlers, support
+from app.bot.handlers import customer, seller, admin as admin_handlers, support, contest
 from app.db import SessionLocal
 from app.services.exchange_rate import ensure_rate_fresh
 
@@ -40,6 +40,7 @@ async def main():
     dp.include_router(seller.router)
     dp.include_router(admin_handlers.router)
     dp.include_router(support.router)
+    dp.include_router(contest.router)
 
     log.info("DELIXI bot starting...")
     await refresh_rate_on_start()
