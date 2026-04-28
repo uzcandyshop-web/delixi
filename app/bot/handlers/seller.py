@@ -1,21 +1,19 @@
-"""Seller handlers: inline WebApp scanner launch + today's report, localized.
-
-Uses inline-keyboard WebApp button instead of reply-keyboard, which is the
-only way to guarantee signed initData on Telegram Desktop (v9.6+ bug).
-"""
-from datetime import datetime, timezone, timedelta
+"""Seller handlers: inline WebApp scanner + multi-period report."""
 from decimal import Decimal
 from aiogram import Router, F
 from aiogram.filters import Command
 from aiogram.types import (
-    Message, ReplyKeyboardMarkup, KeyboardButton,
-    InlineKeyboardMarkup, InlineKeyboardButton, WebAppInfo,
+    Message, CallbackQuery,
+    ReplyKeyboardMarkup, KeyboardButton, WebAppInfo,
+    InlineKeyboardMarkup, InlineKeyboardButton, BufferedInputFile,
 )
-from sqlalchemy import func
+
 from app.config import get_settings
 from app.core.i18n import t, SUPPORTED_LANGS, DEFAULT_LANG
+from app.core.chart import make_daily_chart
 from app.db import SessionLocal
-from app.models import User, Transaction, UserRole
+from app.models import User, UserRole
+from app.services.reports import seller_report
 
 router = Router()
 settings = get_settings()
@@ -27,7 +25,6 @@ def _in_any(key: str):
 
 
 def _seller_reply_kb(lang: str) -> ReplyKeyboardMarkup:
-    """Bottom reply-keyboard with plain text buttons (no WebApp here)."""
     return ReplyKeyboardMarkup(
         keyboard=[
             [KeyboardButton(text=t("menu_scan", lang))],
@@ -39,15 +36,20 @@ def _seller_reply_kb(lang: str) -> ReplyKeyboardMarkup:
 
 
 def _scan_inline_kb(lang: str) -> InlineKeyboardMarkup:
-    """Inline WebApp button — signed initData works on all platforms."""
-    return InlineKeyboardMarkup(
-        inline_keyboard=[[
-            InlineKeyboardButton(
-                text=t("menu_scan", lang),
-                web_app=WebAppInfo(url=settings.webapp_url),
-            )
-        ]]
-    )
+    return InlineKeyboardMarkup(inline_keyboard=[[
+        InlineKeyboardButton(
+            text=t("menu_scan", lang),
+            web_app=WebAppInfo(url=settings.webapp_url),
+        )
+    ]])
+
+
+def _periods_kb(lang: str) -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(inline_keyboard=[[
+        InlineKeyboardButton(text=t("rep_today", lang), callback_data="rep:s:today"),
+        InlineKeyboardButton(text=t("rep_week", lang), callback_data="rep:s:week"),
+        InlineKeyboardButton(text=t("rep_month", lang), callback_data="rep:s:month"),
+    ]])
 
 
 def _fmt(n: Decimal) -> str:
@@ -55,6 +57,7 @@ def _fmt(n: Decimal) -> str:
     return f"{q:,}".replace(",", " ")
 
 
+# ---------- /seller, /scan ----------
 @router.message(Command("seller"))
 async def seller_menu(m: Message):
     with SessionLocal() as db:
@@ -63,15 +66,12 @@ async def seller_menu(m: Message):
     if not user or user.role != UserRole.SELLER.value:
         await m.answer(t("not_seller", lang))
         return
-    # Show bottom menu (for Today/Language buttons)…
     await m.answer(t("seller_menu_intro", lang), reply_markup=_seller_reply_kb(lang))
-    # …and an inline scan button in a separate message
     await m.answer(t("menu_scan", lang), reply_markup=_scan_inline_kb(lang))
 
 
 @router.message(Command("scan"))
 async def scan_cmd(m: Message):
-    """Quick access to scanner — shows inline WebApp button."""
     with SessionLocal() as db:
         user = db.query(User).filter(User.telegram_id == m.from_user.id).first()
     lang = user.language if user else DEFAULT_LANG
@@ -83,7 +83,6 @@ async def scan_cmd(m: Message):
 
 @router.message(_in_any("menu_scan"))
 async def scan_button(m: Message):
-    """Handle the 📸 button from the reply keyboard — re-send as inline."""
     with SessionLocal() as db:
         user = db.query(User).filter(User.telegram_id == m.from_user.id).first()
     lang = user.language if user else DEFAULT_LANG
@@ -108,36 +107,63 @@ async def seller_open(m: Message):
         )
 
 
+# ---------- "Сегодня" → period picker ----------
 @router.message(_in_any("menu_today"))
-async def today_report(m: Message):
+async def report_picker(m: Message):
     with SessionLocal() as db:
         user = db.query(User).filter(User.telegram_id == m.from_user.id).first()
         if not user or user.role != UserRole.SELLER.value:
             await m.answer(t("only_sellers", DEFAULT_LANG))
             return
         lang = user.language
+    await m.answer(t("rep_choose_period", lang), reply_markup=_periods_kb(lang))
 
-        since = datetime.now(timezone.utc) - timedelta(hours=24)
-        agg = (
-            db.query(
-                func.count(Transaction.id),
-                func.coalesce(func.sum(Transaction.amount), 0),
-                func.coalesce(func.sum(Transaction.bonus_amount), 0),
-            )
-            .filter(
-                Transaction.seller_id == user.id,
-                Transaction.created_at >= since,
-            )
-            .one()
-        )
-        count, total, bonus = agg
 
-    if count == 0:
-        await m.answer(t("today_empty", lang))
+@router.callback_query(F.data.startswith("rep:s:"))
+async def seller_report_cb(cb: CallbackQuery):
+    period = cb.data.split(":", 2)[2]
+    if period not in ("today", "week", "month"):
+        await cb.answer()
         return
-    await m.answer(t(
-        "today_report", lang,
-        count=count,
-        total=_fmt(Decimal(total)),
-        bonus=_fmt(Decimal(bonus)),
-    ))
+
+    with SessionLocal() as db:
+        user = db.query(User).filter(User.telegram_id == cb.from_user.id).first()
+        if not user or user.role != UserRole.SELLER.value:
+            await cb.answer(t("only_sellers", DEFAULT_LANG), show_alert=True)
+            return
+        lang = user.language
+        report = seller_report(db, user, period)
+
+    await cb.answer()
+    await cb.message.edit_reply_markup()  # remove buttons from prompt
+
+    # Always send text summary
+    if report.count == 0:
+        await cb.message.answer(t(f"rep_seller_empty_{period}", lang))
+        return
+
+    summary = t(
+        "rep_seller_summary", lang,
+        period=t(f"rep_period_label_{period}", lang),
+        count=report.count,
+        total=_fmt(report.total),
+        bonus=_fmt(report.bonus),
+        avg=_fmt(report.avg_check),
+    )
+    await cb.message.answer(summary)
+
+    # For week/month: PNG chart with daily revenue
+    if period in ("week", "month"):
+        title = t(f"rep_chart_title_{period}", lang)
+        sub = t(
+            "rep_chart_subtitle", lang,
+            count=report.count, total=_fmt(report.total),
+        )
+        png = make_daily_chart(
+            title=title, subtitle=sub,
+            daily=[(d, rev) for d, rev, _ in report.daily],
+            lang=lang,
+        )
+        await cb.message.answer_photo(
+            BufferedInputFile(png, filename="chart.png"),
+        )

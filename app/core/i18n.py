@@ -377,6 +377,134 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "uz": "✅ {name} endi {code} viloyatida sotuvchi",
     },
 
+    # ---------- Admin inline panel ----------
+    "adm_panel_title": {
+        "ru": "🛠 <b>Админ-панель</b>\n\nВыберите действие:",
+        "uz": "🛠 <b>Admin paneli</b>\n\nAmalni tanlang:",
+    },
+    "adm_btn_pending": {"ru": "📨 Заявки на призы", "uz": "📨 Sovg'a arizalari"},
+    "adm_btn_sellers": {"ru": "👥 Продавцы", "uz": "👥 Sotuvchilar"},
+    "adm_btn_judges": {"ru": "🧑‍⚖️ Судьи", "uz": "🧑‍⚖️ Hakamlar"},
+    "adm_btn_make_seller": {"ru": "➕ Продавец", "uz": "➕ Sotuvchi"},
+    "adm_btn_make_judge": {"ru": "➕ Судья", "uz": "➕ Hakam"},
+    "adm_btn_rate": {"ru": "💱 Курс USD", "uz": "💱 USD kursi"},
+    "adm_btn_update_rate": {"ru": "🔄 Обновить курс", "uz": "🔄 Kursni yangilash"},
+    "adm_btn_start_contest": {"ru": "🏆 Начать конкурс", "uz": "🏆 Tanlov boshlash"},
+    "adm_btn_end_contest": {"ru": "🏁 Завершить конкурс", "uz": "🏁 Tanlovni yakunlash"},
+    "adm_btn_report": {"ru": "📊 Отчёт за 7 дней", "uz": "📊 7 kunlik hisobot"},
+    "adm_btn_back": {"ru": "◀️ Назад в меню", "uz": "◀️ Menyuga qaytish"},
+
+    "adm_confirm_end_contest_q": {
+        "ru": "⚠️ Завершить конкурс «{name}»?\n\n"
+              "Все работы получат финальный статус, новые работы приниматься не будут. "
+              "Будет показан топ-10 победителей.",
+        "uz": "⚠️ «{name}» tanlovini yakunlaysizmi?\n\n"
+              "Barcha ishlar yakuniy holatga o'tadi, yangi ishlar qabul qilinmaydi. "
+              "Top-10 g'oliblar ko'rsatiladi.",
+    },
+    "adm_confirm_end_contest": {
+        "ru": "✅ Да, завершить",
+        "uz": "✅ Ha, yakunlash",
+    },
+
+    "regions_available": {
+        "ru": "<b>Коды регионов:</b>",
+        "uz": "<b>Viloyat kodlari:</b>",
+    },
+
+    # ---------- Admin reports ----------
+    "report_header": {
+        "ru": "📊 <b>Отчёт за 7 дней</b>\n\n"
+              "Транзакций: <b>{count}</b>\n"
+              "Оборот: <b>{total}</b> сум\n"
+              "Начислено баллов: <b>{bonus}</b>",
+        "uz": "📊 <b>7 kunlik hisobot</b>\n\n"
+              "Tranzaksiyalar: <b>{count}</b>\n"
+              "Aylanma: <b>{total}</b> so'm\n"
+              "Qo'shilgan ballar: <b>{bonus}</b>",
+    },
+    "report_by_region": {
+        "ru": "<b>По регионам:</b>",
+        "uz": "<b>Viloyatlar bo'yicha:</b>",
+    },
+
+    # ---------- Period picker (seller + admin) ----------
+    "rep_today": {"ru": "Сегодня", "uz": "Bugun"},
+    "rep_week": {"ru": "Неделя", "uz": "Hafta"},
+    "rep_month": {"ru": "Месяц", "uz": "Oy"},
+    "rep_choose_period": {
+        "ru": "📊 Выберите период:",
+        "uz": "📊 Davrni tanlang:",
+    },
+    "rep_period_label_today": {"ru": "сегодня", "uz": "bugun"},
+    "rep_period_label_week": {"ru": "за 7 дней", "uz": "7 kun ichida"},
+    "rep_period_label_month": {"ru": "за 30 дней", "uz": "30 kun ichida"},
+    "rep_done": {"ru": "✅ Готово", "uz": "✅ Tayyor"},
+
+    # ---------- Seller summary ----------
+    "rep_seller_summary": {
+        "ru": "📊 <b>Ваш отчёт ({period})</b>\n\n"
+              "Чеков: <b>{count}</b>\n"
+              "Оборот: <b>{total}</b> сум\n"
+              "Начислено баллов: <b>{bonus}</b>\n"
+              "Средний чек: <b>{avg}</b> сум",
+        "uz": "📊 <b>Hisobotingiz ({period})</b>\n\n"
+              "Cheklar: <b>{count}</b>\n"
+              "Aylanma: <b>{total}</b> so'm\n"
+              "Qo'shilgan ballar: <b>{bonus}</b>\n"
+              "O'rtacha chek: <b>{avg}</b> so'm",
+    },
+    "rep_seller_empty_today": {
+        "ru": "📊 Сегодня у вас ещё не было продаж.",
+        "uz": "📊 Bugun sizda hali sotuvlar yo'q.",
+    },
+    "rep_seller_empty_week": {
+        "ru": "📊 За последние 7 дней продаж не было.",
+        "uz": "📊 So'nggi 7 kunda sotuvlar bo'lmadi.",
+    },
+    "rep_seller_empty_month": {
+        "ru": "📊 За последние 30 дней продаж не было.",
+        "uz": "📊 So'nggi 30 kunda sotuvlar bo'lmadi.",
+    },
+
+    # ---------- Admin summary ----------
+    "rep_admin_summary": {
+        "ru": "📊 <b>Отчёт по системе ({period})</b>\n\n"
+              "Транзакций: <b>{count}</b>\n"
+              "Оборот: <b>{total}</b> сум\n"
+              "Начислено баллов: <b>{bonus}</b>\n"
+              "Средний чек: <b>{avg}</b> сум",
+        "uz": "📊 <b>Tizim hisoboti ({period})</b>\n\n"
+              "Tranzaksiyalar: <b>{count}</b>\n"
+              "Aylanma: <b>{total}</b> so'm\n"
+              "Qo'shilgan ballar: <b>{bonus}</b>\n"
+              "O'rtacha chek: <b>{avg}</b> so'm",
+    },
+    "rep_admin_empty_today": {
+        "ru": "📊 Сегодня в системе ещё не было транзакций.",
+        "uz": "📊 Bugun tizimda hali tranzaksiyalar yo'q.",
+    },
+    "rep_admin_empty_week": {
+        "ru": "📊 За последние 7 дней транзакций не было.",
+        "uz": "📊 So'nggi 7 kunda tranzaksiyalar bo'lmadi.",
+    },
+    "rep_admin_empty_month": {
+        "ru": "📊 За последние 30 дней транзакций не было.",
+        "uz": "📊 So'nggi 30 kunda tranzaksiyalar bo'lmadi.",
+    },
+
+    # ---------- Chart titles ----------
+    "rep_chart_title_week": {
+        "ru": "Оборот за 7 дней", "uz": "7 kunlik aylanma",
+    },
+    "rep_chart_title_month": {
+        "ru": "Оборот за 30 дней", "uz": "30 kunlik aylanma",
+    },
+    "rep_chart_subtitle": {
+        "ru": "{count} транзакций · {total} сум",
+        "uz": "{count} tranzaksiya · {total} so'm",
+    },
+
     # ---------- Support requests ----------
     "support_choose_category": {
         "ru": "❓ <b>Помощь</b>\n\nВыберите категорию обращения:",
